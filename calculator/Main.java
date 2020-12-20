@@ -13,6 +13,8 @@ public class Main {
             exit = line.equalsIgnoreCase("/exit");
             if (exit) {
                 System.out.println("Bye!");
+            } else if (line.equalsIgnoreCase("/help")){
+                System.out.println("The program calculates the sum of numbers");
             } else if (!line.isEmpty()){
                 var operands = Arrays.stream(line.split("\\s+")).mapToInt(Integer::parseInt);
                 System.out.println(operands.sum());
