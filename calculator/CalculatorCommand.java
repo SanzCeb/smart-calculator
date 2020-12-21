@@ -2,6 +2,7 @@ package calculator;
 
 public enum CalculatorCommand {
     EXPRESSION,
+    ASSIGNMENT,
     HELP,
     EXIT,
     EMPTY,
@@ -20,7 +21,13 @@ public enum CalculatorCommand {
                 result = EMPTY;
                 break;
             default:
-                result = (userInput.matches("/\\w+")) ? UNKNOWN : EXPRESSION;
+                if (userInput.matches(Regex.COMMAND)) {
+                    result = UNKNOWN;
+                } else if (userInput.contains("=")){
+                    result = ASSIGNMENT;
+                } else {
+                    result = EXPRESSION;
+                }
         }
         return result;
     }
