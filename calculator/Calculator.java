@@ -1,5 +1,10 @@
 package calculator;
 
+import calculator.engine.Variables;
+import calculator.engine.CalculatorCommand;
+import calculator.engine.InfixToPostfixConverter;
+import calculator.engine.Regex;
+
 import java.util.*;
 
 public class Calculator {
@@ -10,28 +15,30 @@ public class Calculator {
         do {
             var userInput = scanner.nextLine().trim();
             command = CalculatorCommand.parseCommand(userInput);
-
-            switch (command) {
-                case EXPRESSION:
-                    tryEvaluateExpression(userInput);
-                    break;
-                case ASSIGNMENT:
-                    tryAssignment(userInput);
-                    break;
-                case HELP:
-                    printHelpMessage();
-                    break;
-                case UNKNOWN:
-                    printUnknownCommandMessage();
-                    break;
-                case EXIT:
-                    printExitMessage();
-                    break;
-                case EMPTY:
-                    break;
-            }
-
+            runCommand(command, userInput);
         } while (command != CalculatorCommand.EXIT);
+    }
+
+    private static void runCommand(CalculatorCommand command, String userInput) {
+        switch (command) {
+            case EXPRESSION:
+                tryEvaluateExpression(userInput);
+                break;
+            case ASSIGNMENT:
+                tryAssignment(userInput);
+                break;
+            case HELP:
+                printHelpMessage();
+                break;
+            case UNKNOWN:
+                printUnknownCommandMessage();
+                break;
+            case EXIT:
+                printExitMessage();
+                break;
+            case EMPTY:
+                break;
+        }
     }
 
     private static void tryAssignment(String userInput) {
@@ -74,36 +81,47 @@ public class Calculator {
     }
 
     private static int evaluateExpression(String expression) {
-        var operands = new ArrayDeque<Integer>();
-        var tokens = expression.split("\\s+");
-        boolean neg = false;
-        for (var token : tokens) {
-            if (token.matches(Regex.INTEGER_VALUE)) {
-                var operand = parseOperand(token);
-                if (neg) {
-                    operand = Math.negateExact(operand);
-                    neg = false;
-                }
-                operands.add(operand);
-            } else if (token.matches(Regex.NEG_OPERATOR)){
-                neg = token.length() % 2 == 1;
-            } else if (token.matches(Regex.PLUS_OPERATOR)) {
-                neg = false;
-            } else if (token.matches(Regex.IDENTIFIER)) {
-                boolean finalNeg = neg;
-                Optional.ofNullable(VARIABLES.getValue(token))
-                        .map(value -> finalNeg ? -value : value)
-                        .ifPresentOrElse(operands::add
-                        , () -> {throw new RuntimeException("Unknown Variable");});
-            } else {
-                throw new RuntimeException("Invalid Expression");
+        Queue<String> postFix = new InfixToPostfixConverter(expression).convertToPostfix();
+        var stack = new ArrayDeque<Integer>();
+
+        for (var item : postFix) {
+            if (item.matches(Regex.INTEGER_VALUE)) {
+                stack.push(Integer.parseInt(item));
+            } else if (item.matches(Regex.IDENTIFIER)) {
+                Optional.ofNullable(VARIABLES.getValue(item))
+                        .ifPresentOrElse(stack::push, () -> {throw new RuntimeException("Unknown variable");});
+            } else if (item.matches(Regex.OPERATOR)) {
+                var operand2 = stack.pop();
+                var operand1 = stack.pop();
+                int result = runOperation(item, operand1, operand2);
+                stack.push(result);
             }
         }
-        return operands.stream().mapToInt(Integer::intValue).sum();
+
+        return Optional.ofNullable(stack.peek())
+                .orElseThrow(() -> {throw new RuntimeException("Invalid Expression");});
     }
 
-    private static int parseOperand(String operand ){
-        var integer = operand.startsWith("+") ? operand.substring(1) : operand;
-        return Integer.parseInt(integer);
+    private static int runOperation(String item, Integer operand1, Integer operand2) {
+        int result;
+        switch (item) {
+            case "*":
+                result = operand1 * operand2;
+            break;
+            case "+":
+                result = operand1 + operand2;
+            break;
+            case "-":
+                result = operand1 - operand2;
+            break;
+            case "/":
+                result = operand1 / operand2;
+                break;
+            default:
+                throw  new RuntimeException("Invalid expression");
+        }
+
+        return result;
     }
+
 }

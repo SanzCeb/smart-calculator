@@ -1,4 +1,4 @@
-package calculator;
+package calculator.engine;
 
 public enum CalculatorCommand {
     EXPRESSION,

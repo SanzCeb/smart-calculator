@@ -1,4 +1,6 @@
-package calculator;
+package calculator.engine;
+
+import calculator.engine.Regex;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -10,7 +12,7 @@ public class Variables {
 
         if (!identifier1.matches(Regex.IDENTIFIER)){
             throw new RuntimeException("Invalid Identifier");
-        } else if (operand.matches("-?\\d+")) {
+        } else if (operand.matches(Regex.INTEGER_VALUE)) {
             variables.put(identifier1, Integer.parseInt(operand));
         } else if (operand.matches(Regex.IDENTIFIER)) {
             var intValue = variables.get(operand);
