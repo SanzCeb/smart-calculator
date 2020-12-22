@@ -1,19 +1,18 @@
 package calculator.engine;
 
-import calculator.engine.Regex;
-
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Objects;
 
 public class Variables {
-    private final HashMap<String, Integer> variables = new HashMap<>();
+    private final HashMap<String, BigInteger> variables = new HashMap<>();
 
     public void assign(String identifier1, String operand) {
 
         if (!identifier1.matches(Regex.IDENTIFIER)){
             throw new RuntimeException("Invalid Identifier");
         } else if (operand.matches(Regex.INTEGER_VALUE)) {
-            variables.put(identifier1, Integer.parseInt(operand));
+            variables.put(identifier1, new BigInteger(operand));
         } else if (operand.matches(Regex.IDENTIFIER)) {
             var intValue = variables.get(operand);
             if (Objects.isNull(intValue)) {
@@ -26,7 +25,7 @@ public class Variables {
         }
     }
 
-    public Integer getValue(String token) {
+    public BigInteger getValue(String token) {
         return variables.get(token);
     }
 }

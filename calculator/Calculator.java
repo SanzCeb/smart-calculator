@@ -1,10 +1,8 @@
 package calculator;
 
-import calculator.engine.Variables;
-import calculator.engine.CalculatorCommand;
-import calculator.engine.InfixToPostfixConverter;
-import calculator.engine.Regex;
+import calculator.engine.*;
 
+import java.math.BigInteger;
 import java.util.*;
 
 public class Calculator {
@@ -80,20 +78,20 @@ public class Calculator {
         }
     }
 
-    private static int evaluateExpression(String expression) {
+    private static BigInteger evaluateExpression(String expression) {
         Queue<String> postFix = new InfixToPostfixConverter(expression).convertToPostfix();
-        var stack = new ArrayDeque<Integer>();
+        var stack = new ArrayDeque<BigInteger>();
 
         for (var item : postFix) {
             if (item.matches(Regex.INTEGER_VALUE)) {
-                stack.push(Integer.parseInt(item));
+                stack.push(new BigInteger(item));
             } else if (item.matches(Regex.IDENTIFIER)) {
                 Optional.ofNullable(VARIABLES.getValue(item))
                         .ifPresentOrElse(stack::push, () -> {throw new RuntimeException("Unknown variable");});
             } else if (item.matches(Regex.OPERATOR)) {
                 var operand2 = stack.pop();
                 var operand1 = stack.pop();
-                int result = runOperation(item, operand1, operand2);
+                BigInteger result = runOperation(item, operand1, operand2);
                 stack.push(result);
             }
         }
@@ -102,20 +100,20 @@ public class Calculator {
                 .orElseThrow(() -> {throw new RuntimeException("Invalid Expression");});
     }
 
-    private static int runOperation(String item, Integer operand1, Integer operand2) {
-        int result;
+    private static BigInteger runOperation(String item, BigInteger operand1, BigInteger operand2) {
+        BigInteger result;
         switch (item) {
             case "*":
-                result = operand1 * operand2;
+                result = operand1.multiply(operand2);
             break;
             case "+":
-                result = operand1 + operand2;
+                result = operand1.add(operand2);
             break;
             case "-":
-                result = operand1 - operand2;
+                result = operand1.subtract(operand2);
             break;
             case "/":
-                result = operand1 / operand2;
+                result = operand1.divide(operand2);
                 break;
             default:
                 throw  new RuntimeException("Invalid expression");
